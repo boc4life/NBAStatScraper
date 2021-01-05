@@ -1,21 +1,40 @@
 const axios = require("axios");
 const cheerio = require("cheerio");
+const DB = require("./DAL/db");
 
-const teams = [""]
+const teams = ["PHI", "BOS", "NYK", "BRK", "TOR", "UTA", "POR", "OKC", "DEN", "MIN", "CLE", "IND", "MIL", "CHI", "DET", "LAL", "PHO", "LAC", "GSW", "SAC", "ORL", "ATL", "MIA", "CHA", "WAS", "NOP", "HOU", "DAL", "SAS", "MEM"]
+const month = process.argv[2];
+const day = process.argv[3];
+const year = process.argv[4];
+let playerArr = [];
+let promiseArr = [];
 
-axios.get("https://www.basketball-reference.com/boxscores/202101030DET.html").then(response => {
+function scrape() {
+return new Promise((resolve, reject) => {
+for (let i =0; i < teams.length; i++) {
+    promiseArr.push(new Promise((resolve, reject) =>{
+
+    
+    const url = `https://www.basketball-reference.com/boxscores/${year}${month}${day}0${teams[i]}.html`
+
+    axios.get(url).then(response => {
     const $ = cheerio.load(response.data);
-    let playerArr = [];
+
 
     $("table").each((i, element) => {
         let opponent;
+        let team;
         if (i == 0) {
-            let teamId = $("table")[8].attribs.id
-            opponent = teamId.split("-")[1]
+            let oppId = $("table")[8].attribs.id
+            opponent = oppId.split("-")[1]
+            let teamId = $("table")[0].attribs.id
+            team = teamId.split("-")[1]
         }
         else if (i == 8) {
-            let teamId = $("table")[0].attribs.id
-            opponent = teamId.split("-")[1]
+            let oppId = $("table")[0].attribs.id
+            opponent = oppId.split("-")[1]
+            let teamId = $("table")[8].attribs.id
+            team = teamId.split("-")[1]
         }
         if (element.attribs.id.includes("basic") && 
             element.attribs.id.includes("game")) {
@@ -146,10 +165,32 @@ axios.get("https://www.basketball-reference.com/boxscores/202101030DET.html").th
                     }
 
                     // get opponent
-                    player.opponent = opponent
-                    console.log(player)
+                    player.opponent = opponent;
+                    player.team = team;
+                    playerArr.push(player)
             }
             })
         }
     })
+    console.log("done for " + teams[i])
+    resolve("done")
+})
+.catch(err => {
+    console.log(err + " " + teams[i])
+    resolve("no game")
+})
+}))
+}
+
+Promise.all(promiseArr).then(() => {
+    resolve("done")
+})
+})
+}
+
+scrape().then(() => {
+    // DB.insertPlayerGame(playerArr[0])
+    for(let i = 0; i < playerArr.length; i++) {
+        DB.insertPlayerGame(playerArr[i]);
+    }
 })
