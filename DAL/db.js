@@ -30,9 +30,12 @@ module.exports = {
             request.input("Turnovers", sql.Int, playerGame.turnovers)
             request.input("Opponent", sql.VarChar(5), playerGame.opponent)
             request.input("Team", sql.VarChar(5), playerGame.team)
+            request.input("DoubleDouble", sql.Int, playerGame.doubleDouble)
+            request.input("TripleDouble", sql.Int, playerGame.tripleDouble)
+            request.input("Date", sql.Date, playerGame.date)
             request.execute("[dbo].[InsertPlayerGame]").then((err, recordsets, returnValue, affected) =>{
-                console.log(recordsets);
-                console.log(err);
+                // console.log(recordsets);
+                // console.log(err);
                 conn.close();
             }).catch(err => {
                 conn.close();
