@@ -10,6 +10,28 @@ let playerArr = [];
 let promiseArr = [];
 let otI = 8;
 
+function getStat(element, htmlAtt, objAtt, obj) {
+    if (element.children(`td[data-stat=${htmlAtt}]`).text() == '') {
+        obj[objAtt] = 0
+    }
+    else {
+        obj[objAtt] = parseInt(element.children(`td[data-stat=${htmlAtt}]`).text())
+    }
+    return obj;
+}
+
+function getDdCatStat(element, htmlAtt, objAtt, obj) {
+    if (element.children(`td[data-stat=${htmlAtt}]`).text() == '') {
+        obj[objAtt] = 0
+    }
+    else {
+        const statVal = parseInt(element.children(`td[data-stat=${htmlAtt}]`).text())
+        obj[objAtt] = statVal;
+        if (statVal >= 10) obj.ddCat++
+    }
+    return obj;
+}
+
 function scrape() {
 return new Promise((resolve, reject) => {
 
@@ -71,7 +93,7 @@ for (let i =0; i < teams.length; i++) {
                         doubleDouble: 0,
                         tripleDouble: 0
                     };
-                    
+
                     // get player name
                     // TODO: Get rid of unneeded each loop
                     $(element).children("th").each((i, element) => {
@@ -94,110 +116,43 @@ for (let i =0; i < teams.length; i++) {
                     else {
                     player.mp = 0
                     }
-                    
+
                     // get FGM
-                    if ($(element).children("td[data-stat=fg]").text() == '') {
-                        player.fgm = 0
-                    }
-                    else {
-                        player.fgm = parseInt($(element).children("td[data-stat=fg]").text())
-                    }
+                    player = getStat($(element), "fg", "fgm", player)
 
                     // get FGA
-                    if ($(element).children("td[data-stat=fga]").text() == '') {
-                        player.fga = 0
-                    }
-                    else {
-                        player.fga = parseInt($(element).children("td[data-stat=fga]").text())
-                    }
+                    player = getStat($(element), "fga", "fga", player)
 
                     // get 3pM
-                    if ($(element).children("td[data-stat=fg3]").text() == '') {
-                        player.tpm = 0
-                    }
-                    else {
-                        player.tpm = parseInt($(element).children("td[data-stat=fg3]").text())
-                    }
+                    player = getStat($(element), "fg3", "tpm", player)
 
                     // get 3pA
-                    if ($(element).children("td[data-stat=fg3a]").text() == '') {
-                        player.tpa = 0
-                    }
-                    else {
-                        player.tpa = parseInt($(element).children("td[data-stat=fg3a]").text())
-                    }
+                    player = getStat($(element), "fg3a", "tpa", player)
 
                     // get FTM
-                    if ($(element).children("td[data-stat=ft]").text() == '') {
-                        player.ftm = 0
-                    }
-                    else {
-                        player.ftm = parseInt($(element).children("td[data-stat=ft]").text())
-                    }
+                    player = getStat($(element), "ft", "ftm", player)
 
                     // get FTA
-                    if ($(element).children("td[data-stat=fta]").text() == '') {
-                        player.fta = 0
-                    }
-                    else {
-                        player.fta = parseInt($(element).children("td[data-stat=fta]").text())
-                    }
+                    player = getStat($(element), "fta", "fta", player)
 
                     // get points
-                    if ($(element).children("td[data-stat=pts]").text() == '') {
-                        player.points = 0
-                    }
-                    else {
-                        player.points = parseInt($(element).children("td[data-stat=pts]").text())
-                        if (player.points >= 10) player.ddCat += 1;
-                    }
+                    player = getDdCatStat($(element), "pts", "points", player)
 
                     // get rebounds
-                    if ($(element).children("td[data-stat=trb]").text() == '') {
-                        player.rebounds = 0
-                    }
-                    else {
-                        player.rebounds = parseInt($(element).children("td[data-stat=trb]").text())
-                        if (player.rebounds >= 10) player.ddCat += 1;
-                    }
+                    player = getDdCatStat($(element), "trb", "rebounds", player)
 
                     // get assists
-                    if ($(element).children("td[data-stat=ast]").text() == '') {
-                        player.assists = 0
-                    }
-                    else {
-                        player.assists = parseInt($(element).children("td[data-stat=ast]").text())
-                        if (player.assists >= 10) player.ddCat += 1;
-                    }
+                    player = getDdCatStat($(element), "ast", "assists", player)
 
                     // get steals
-                    if ($(element).children("td[data-stat=stl]").text() == '') {
-                        player.steals = 0
-                    }
-                    else {
-                        player.steals = parseInt($(element).children("td[data-stat=stl]").text())
-                        if (player.steals >= 10) player.ddCat += 1;
-                    }
+                    player = getDdCatStat($(element), "stl", "steals", player)
 
                     // get blocks
-                    if ($(element).children("td[data-stat=blk]").text() == '') {
-                        player.blocks = 0
-                    }
-                    else {
-                        player.blocks = parseInt($(element).children("td[data-stat=blk]").text())
-                        if (player.blocks >= 10) player.ddCat += 1;
-                    }
+                    player = getDdCatStat($(element), "blk", "blocks", player)
 
                     // get turnovers
-                    if ($(element).children("td[data-stat=tov]").text() == '') {
-                        player.turnovers = 0
-                    }
-                    else {
-                        player.turnovers = parseInt($(element).children("td[data-stat=tov]").text())
-                    }
+                    player = getStat($(element), "tov", "turnovers", player)
 
-                    // get opponent
-                    console.log(team, opponent)
                     player.opponent = opponent;
                     player.team = team;
                     if (player.ddCat >= 2) player.doubleDouble = 1
@@ -231,3 +186,6 @@ scrape().then(() => {
         DB.insertPlayerGame(playerArr[i]);
     }
 })
+
+
+
